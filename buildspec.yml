@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+    commands:
+      - aws --version
+      - $(aws ecr get-login --no-include-email --region ap-northeast-2)
+      - npm install yarn
+  build:
+    commands:
+      - docker build -t event-api .
+  post_build:
+    commands:
+      - docker tag event-api:latest 557263560770.dkr.ecr.ap-northeast-2.amazonaws.com/event-api:latest
+      - docker push 557263560770.dkr.ecr.ap-northeast-2.amazonaws.com/event-api:latest
+      - echo Writing image definitions file...
+      - printf '[{"name":"event-api-container","imageUri":"%s"}]' 557263560770.dkr.ecr.ap-northeast-2.amazonaws.com/event-api:latest > imagedefinitions.json
+artifacts:
+  files: imagedefinitions.json
